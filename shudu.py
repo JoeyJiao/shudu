@@ -5,6 +5,21 @@ class GetOutOfLoop(BaseException):
     pass
 
 array = [([0] * 9) for i in range(9)]
+
+array = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
+
+# Difficult version works
+
 array = [
     [3, 0, 0, 0, 0, 0, 0, 0, 4],
     [2, 0, 0, 8, 9, 0, 6, 0, 0],
@@ -17,7 +32,19 @@ array = [
     [0, 5, 8, 0, 0, 6, 0, 0, 0],
 ]
 
-# Works
+#array = [
+#    [0, 2, 0, 5, 0, 0, 0, 0, 0],
+#    [0, 0, 0, 0, 0, 0, 0, 1, 0],
+#    [0, 0, 0, 6, 0, 0, 0, 8, 4],
+#    [0, 6, 7, 0, 0, 0, 2, 0, 1],
+#    [3, 0, 9, 2, 4, 0, 7, 6, 0],
+#    [0, 0, 8, 0, 0, 0, 0, 0, 0],
+#    [0, 0, 0, 0, 8, 3, 0, 0, 0],
+#    [0, 7, 0, 0, 1, 0, 0, 0, 0],
+#    [6, 4, 0, 7, 0, 2, 0, 9, 0],
+#]
+
+# Simple version Works
 #array = [
 #    [2, 0, 1, 5, 4, 0, 0, 0, 6],
 #    [0, 0, 5, 6, 0, 2, 1, 3, 0],
@@ -30,7 +57,17 @@ array = [
 #    [1, 6, 0, 0, 0, 0, 0, 2, 0],
 #]
 
-array_orig = list(array)
+#array = [
+#    [0, 6, 8, 0, 3, 0, 5, 4, 0],
+#    [0, 1, 9, 5, 8, 0, 0, 0, 0],
+#    [0, 4, 0, 0, 9, 0, 0, 7, 0],
+#    [4, 0, 0, 3, 7, 8, 0, 0, 0],
+#    [1, 5, 0, 9, 0, 6, 0, 8, 0],
+#    [8, 0, 7, 1, 2, 5, 9, 0, 0],
+#    [5, 0, 0, 4, 0, 7, 6, 0, 8],
+#    [9, 0, 0, 0, 6, 3, 4, 0, 0],
+#    [0, 8, 0, 0, 5, 9, 1, 0, 0],
+#]
 
 num = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -96,31 +133,40 @@ def find_candidates(i, j):
                 candidates[i][j] = [d]
                 array[i][j] = d
                 break
- 
+
+def find_uniq():
+    global candidates, array
+    # Find uniq candidate in row/column
+    for i in range(9):
+        A = []
+        for k in range(9):
+            if array[i][k] == 0:
+                A += candidates[i][k]
+        U = [item for item, count in collections.Counter(A).items() if count == 1]
+        if len(U) == 1:
+            for k in range(9):
+                if U in candidates[i][k]:
+                    candidates[i][k] = [U]
+                    array[i][k] = U
+
+    for j in range(9):
+        A = []
+        for k in range(9):
+            if array[k][j] == 0:
+                A += candidates[k][j]
+        U = [item for item, count in collections.Counter(A).items() if count == 1]
+        if len(U) == 1:
+            for k in range(9):
+                if U[0] in candidates[k][j]:
+                    candidates[k][j] = U
+                    array[k][j] = U[0]
+
 def is_done():
     for i in range(9):
         for j in range(9):
             if len(candidates[i][j]) != 1:
                 return False
     return True
-
-def count():
-    global candidates
-    count = 0
-    for i in range(9):
-        for j in range(9):
-            count += len(candidates[i][j])
-    print("candidate count=" + str(count))
-
-def count_array():
-    global array
-    count = 0
-    for i in range(9):
-        for j in range(9):
-            if array[i][j] != 0:
-                count += 1
-    print("array count=" + str(count))
-    return count
 
 def print_candidates():
     global candidates
@@ -133,7 +179,15 @@ def print_candidates():
         print(out)
 
 is_first_run = True
-    
+
+def is_guess_wrong():
+    global candidates
+    for i in range(9):
+        for j in range(9):
+            if len(candidates[i][j]) == 0:
+                return True
+    return False
+
 def update_candidates():
     global candidates, is_first_run, array
     for i in range(9):
@@ -142,6 +196,7 @@ def update_candidates():
                 candidates[i][j] = list(num)
             find_candidates(i, j)
     is_first_run = False
+    find_uniq()
     for i in range(9):
         for j in range(9):
             if len(candidates[i][j]) == 1 and array[i][j] == 0:
@@ -151,10 +206,8 @@ def main():
     global is_first_run, candidates, array
     while True:
         update_candidates()
-        count()
         if is_done():
             break
-        count_array()
     
     print_candidates()
         
